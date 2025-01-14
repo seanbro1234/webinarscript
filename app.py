@@ -37,20 +37,22 @@ def generate_section_content(chunk, notes, api_key):
     - Avoid repeating the input text verbatim.
     """
     try:
-        # Use the updated OpenAI API format
+        # Use the updated OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a scriptwriting assistant."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=7000,
-            temperature=0.3
+            max_tokens=1000,
+            temperature=0.7
         )
-        return response['choices'][0]['message']['content']
+        # Extract the generated content
+        return response.choices[0].message["content"]
     except Exception as e:
         st.error(f"Error generating content: {e}")
         return f"Error generating content: {e}"
+
 
 
 def get_audio_duration(audio_path):
