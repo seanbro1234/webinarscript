@@ -1,5 +1,7 @@
 import streamlit as st
 import openai
+st.write("OpenAI Library Version:", openai.__version__)
+
 import requests
 import subprocess
 import os
@@ -35,6 +37,7 @@ def generate_section_content(chunk, notes, api_key):
     - Avoid repeating the input text verbatim.
     """
     try:
+        # Correct usage of OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
