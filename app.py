@@ -5,8 +5,9 @@ import subprocess
 import os
 
 # API Keys
-OPENAI_API_KEY = "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"
-ELEVEN_LABS_API_KEY = "sk_dce058f72c80d27257de740e8225e98db7619ee5548e053c"
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+ELEVEN_LABS_API_KEY = st.secrets["ELEVEN_LABS_API_KEY"]
+
 ELEVEN_LABS_VOICE_ID = "Fahco4VZzobUeiPqni1S"
 
 # Display logo
