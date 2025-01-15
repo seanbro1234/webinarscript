@@ -12,9 +12,29 @@ ELEVEN_LABS_VOICE_ID = "Fahco4VZzobUeiPqni1S"
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+# Check for FFmpeg installation
+def check_ffmpeg():
+    try:
+        subprocess.run(["ffmpeg", "-version"], capture_output=True)
+        return True
+    except FileNotFoundError:
+        return False
+
 # Display logo
 st.image("https://datalawonline.co.uk/uploads/images/f-b-screen.png", width=200)
 st.title("📄 Script Processor with Audio and Video Generation")
+
+# Check FFmpeg installation
+if not check_ffmpeg():
+    st.error("""
+    FFmpeg is not installed. Please install it to use audio/video features:
+    
+    - On Mac: `brew install ffmpeg`
+    - On Ubuntu/Debian: `sudo apt-get install ffmpeg`
+    - On Windows: Download from https://ffmpeg.org/download.html
+    
+    After installing, please restart the application.
+    """)
 
 # Helper functions
 def generate_section_content(chunk, notes, api_key):
@@ -78,8 +98,12 @@ def get_audio_duration(audio_path):
 
 def calculate_default_durations(sections, total_duration):
     """Calculates default durations for slides based on content length."""
-    total_chars = sum(len(section) for section in sections)
-    return [max(5, (len(section) / total_chars) * total_duration) for section in sections]
+    total_chars = sum(len(str(section)) for section in sections if section)
+    if not total_chars:
+        # If no content, distribute time evenly
+        section_count = len(sections)
+        return [float(total_duration / section_count)] * section_count if section_count else []
+    return [float(max(5.0, (len(str(section)) / total_chars) * float(total_duration))) for section in sections]
 
 def generate_video_with_ffmpeg(audio_path, section_images, section_durations):
     """Generates a video by combining images with audio using FFmpeg."""
@@ -206,7 +230,8 @@ if "audio_path" in st.session_state:
         for i, (image, default_duration) in enumerate(zip(images, default_durations)):
             user_duration = st.number_input(
                 f"Duration for Slide {i + 1} (seconds)",
-                value=default_duration,
+                value=float(default_duration),
+                min_value=1.0,
                 step=1.0,
                 key=f"duration_{i}"
             )
