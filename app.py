@@ -1,5 +1,5 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 import requests
 import subprocess
 import os
@@ -9,6 +9,9 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ELEVEN_LABS_API_KEY = st.secrets["ELEVEN_LABS_API_KEY"]
 ELEVEN_LABS_VOICE_ID = "Fahco4VZzobUeiPqni1S"
 
+# Initialize OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 # Display logo
 st.image("https://datalawonline.co.uk/uploads/images/f-b-screen.png", width=200)
 st.title("📄 Script Processor with Audio and Video Generation")
@@ -16,7 +19,6 @@ st.title("📄 Script Processor with Audio and Video Generation")
 # Helper functions
 def generate_section_content(chunk, notes, api_key):
     """Generates detailed content for a script section using OpenAI."""
-    openai.api_key = api_key
     prompt = f"""
     You are assisting in creating a polished and engaging webinar script. The script should read as a single, continuous narrative with a professional and conversational tone.
 
@@ -32,7 +34,7 @@ def generate_section_content(chunk, notes, api_key):
     - Avoid repeating the input text verbatim.
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a scriptwriting assistant."},
@@ -41,7 +43,7 @@ def generate_section_content(chunk, notes, api_key):
             max_tokens=1000,
             temperature=0.7
         )
-        return response["choices"][0]["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         st.error(f"Error generating content: {e}")
         return f"Error generating content: {e}"
@@ -73,6 +75,11 @@ def get_audio_duration(audio_path):
     except Exception as e:
         st.error(f"Error retrieving audio duration: {e}")
         return None
+
+def calculate_default_durations(sections, total_duration):
+    """Calculates default durations for slides based on content length."""
+    total_chars = sum(len(section) for section in sections)
+    return [max(5, (len(section) / total_chars) * total_duration) for section in sections]
 
 def generate_video_with_ffmpeg(audio_path, section_images, section_durations):
     """Generates a video by combining images with audio using FFmpeg."""
