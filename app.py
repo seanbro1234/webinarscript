@@ -37,7 +37,7 @@ def generate_section_content(chunk, notes, api_key):
     - Avoid repeating the input text verbatim.
     """
     try:
-        # Use the updated OpenAI API
+        # Correct usage of the new OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -47,11 +47,12 @@ def generate_section_content(chunk, notes, api_key):
             max_tokens=1000,
             temperature=0.7
         )
-        # Extract the generated content
-        return response.choices[0].message["content"]
+        # Extract and return the generated content
+        return response["choices"][0]["message"]["content"]
     except Exception as e:
         st.error(f"Error generating content: {e}")
         return f"Error generating content: {e}"
+
 
 
 
