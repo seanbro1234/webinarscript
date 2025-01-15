@@ -1,12 +1,10 @@
 import streamlit as st
 import openai
-st.write("OpenAI Library Version:", openai.__version__)
-
 import requests
 import subprocess
 import os
 
-# API Keys
+# Retrieve API keys from Streamlit secrets
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ELEVEN_LABS_API_KEY = st.secrets["ELEVEN_LABS_API_KEY"]
 ELEVEN_LABS_VOICE_ID = "Fahco4VZzobUeiPqni1S"
@@ -17,10 +15,7 @@ st.title("📄 Script Processor with Audio and Video Generation")
 
 # Helper functions
 def generate_section_content(chunk, notes, api_key):
-    """
-    Generates detailed content for a script section using OpenAI.
-    Expands on the provided `chunk` and incorporates `notes`.
-    """
+    """Generates detailed content for a script section using OpenAI."""
     openai.api_key = api_key
     prompt = f"""
     You are assisting in creating a polished and engaging webinar script. The script should read as a single, continuous narrative with a professional and conversational tone.
@@ -37,7 +32,6 @@ def generate_section_content(chunk, notes, api_key):
     - Avoid repeating the input text verbatim.
     """
     try:
-        # Correct usage of the new OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -47,14 +41,26 @@ def generate_section_content(chunk, notes, api_key):
             max_tokens=1000,
             temperature=0.7
         )
-        # Extract and return the generated content
         return response["choices"][0]["message"]["content"]
     except Exception as e:
         st.error(f"Error generating content: {e}")
         return f"Error generating content: {e}"
 
-
-
+def generate_audio_from_text(text, api_key, voice_id):
+    """Converts text to speech using Eleven Labs API."""
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {"Content-Type": "application/json", "xi-api-key": api_key}
+    payload = {"text": text, "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200:
+            return response.content
+        else:
+            st.error(f"Failed to generate audio: {response.text}")
+            return None
+    except Exception as e:
+        st.error(f"Error during audio generation: {e}")
+        return None
 
 def get_audio_duration(audio_path):
     """Gets the duration of an audio file using FFmpeg."""
